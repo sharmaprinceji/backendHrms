@@ -115,8 +115,7 @@ def delete_employee(request, emp_id):
 
     db.attendance.delete_many({"employee_id": emp_id})
 
-    return Response({"message": "Employee deleted"})
-
+    return Response({"message": "Employee and related attendance deleted"})
 
 
 
