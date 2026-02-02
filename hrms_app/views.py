@@ -12,6 +12,61 @@ def today_str():
     return date.today().strftime("%Y-%m-%d")
 
 
+
+@api_view(["GET"])
+def dashboard_counts(request):
+    today = today_str()
+
+    total_employees = db.employees.count_documents({})
+
+   
+    present_today = db.attendance.count_documents({
+        "date": today,
+        "status": "Present"
+    })
+
+    
+    absent_today = total_employees - present_today
+
+    return Response({
+        "date": today,
+        "total_employees": total_employees,
+        "present_today": present_today,
+        "absent_today": absent_today
+    })
+
+
+
+@api_view(["GET"])
+def recent_employees(request):
+    today = today_str()
+
+    recent_emps = list(
+        db.employees.find({}, {"_id": 0})
+        .sort("_id", -1)   
+        .limit(10)
+    )
+
+    result = []
+
+    for emp in recent_emps:
+        attendance = db.attendance.find_one({
+            "employee_id": emp["employee_id"],
+            "date": today
+        })
+
+        result.append({
+            "employee_id": emp["employee_id"],
+            "full_name": emp["full_name"],
+            "email": emp["email"],
+            "department": emp["department"],
+            "attendance_today": attendance["status"] if attendance else "Not Marked"
+        })
+
+    return Response(result)
+
+
+
 @api_view(["POST"])
 def add_employee(request):
     data = request.data
